@@ -48,4 +48,10 @@ describe('checkExpectations', () => {
   test('only declared expectations produce checks', () => {
     expect(checkExpectations({}, transcript, cleanDiff)).toHaveLength(0)
   })
+
+  test('invalid regex fails the check instead of throwing', () => {
+    const checks = checkExpectations({ transcript_matches: '(unclosed' }, transcript, cleanDiff)
+    expect(checks[0].pass).toBe(false)
+    expect(checks[0].detail).toContain('invalid regex')
+  })
 })

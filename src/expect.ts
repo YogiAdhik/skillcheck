@@ -49,14 +49,17 @@ export function checkExpectations(
   }
 
   if (exp.transcript_matches !== undefined) {
-    const re = new RegExp(exp.transcript_matches, 'm')
-    const haystack = [...transcript.messages, ...transcript.commands].join('\n')
-    const pass = re.test(haystack)
-    out.push({
-      name: 'transcript_matches',
-      pass,
-      detail: pass ? 'ok' : `nothing in the transcript matches /${exp.transcript_matches}/`,
-    })
+    let pass = false
+    let detail: string
+    try {
+      const re = new RegExp(exp.transcript_matches, 'm')
+      const haystack = [...transcript.messages, ...transcript.commands].join('\n')
+      pass = re.test(haystack)
+      detail = pass ? 'ok' : `nothing in the transcript matches /${exp.transcript_matches}/`
+    } catch {
+      detail = `invalid regex: ${exp.transcript_matches}`
+    }
+    out.push({ name: 'transcript_matches', pass, detail })
   }
 
   if (exp.skill_invoked !== undefined) {
