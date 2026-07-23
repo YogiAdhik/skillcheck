@@ -25,4 +25,18 @@ describe('parseStreamJson', () => {
     expect(t.messages).toEqual([])
     expect(t.result).toBeUndefined()
   })
+
+  test('tolerates malformed events and missing fields', () => {
+    const t = parseStreamJson(
+      [
+        '{"type":"assistant","message":{"content":[{"type":"tool_use","input":{}}]}}',
+        '{"type":"assistant","message":{}}',
+        '{"type":"assistant"}',
+        '{"type":"result","subtype":"success"}',
+      ].join('\n'),
+    )
+    expect(t.toolCalls).toEqual([])
+    expect(t.messages).toEqual([])
+    expect(t.result).toEqual({ costUsd: 0, numTurns: 0, isError: false })
+  })
 })

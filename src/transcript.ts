@@ -29,7 +29,7 @@ export function parseStreamJson(output: string): Transcript {
     if (event.type === 'assistant') {
       for (const block of event.message?.content ?? []) {
         if (block.type === 'text' && block.text) t.messages.push(block.text)
-        if (block.type === 'tool_use') {
+        if (block.type === 'tool_use' && typeof block.name === 'string') {
           const call: ToolCall = { name: block.name, input: block.input ?? {} }
           t.toolCalls.push(call)
           if (call.name === 'Bash' && typeof call.input.command === 'string')
