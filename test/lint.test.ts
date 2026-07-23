@@ -17,4 +17,8 @@ describe('lint', () => {
     expect(findings.some((f) => f.file.includes('bad-skill'))).toBe(true)
     expect(findings.some((f) => f.file.includes('good-skill'))).toBe(false)
   })
+
+  test('nonexistent path throws a plain error', () => {
+    expect(() => discoverSkillFiles('test/fixtures/nope-does-not-exist')).toThrow('no such file')
+  })
 })

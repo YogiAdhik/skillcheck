@@ -17,11 +17,17 @@ program
   .option('--json', 'machine-readable output')
   .option('--github', 'github actions annotations')
   .action((path: string, opts: { json?: boolean; github?: boolean }) => {
-    const findings = lintPath(path)
-    if (opts.json) console.log(JSON.stringify(findings, null, 2))
-    else if (opts.github) printGithubAnnotations(findings)
-    else printFindings(findings)
-    process.exitCode = findings.some((f) => f.severity === 'error') ? 1 : 0
+    try {
+      const findings = lintPath(path)
+      if (opts.json) console.log(JSON.stringify(findings, null, 2))
+      else if (opts.github) printGithubAnnotations(findings)
+      else printFindings(findings)
+      process.exitCode = findings.some((f) => f.severity === 'error') ? 1 : 0
+    } catch (e) {
+      console.error((e as Error).message)
+      process.exitCode = 1
+      return
+    }
   })
 
 program.parseAsync()

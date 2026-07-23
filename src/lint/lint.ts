@@ -6,6 +6,7 @@ import { allRules, type Finding } from './rules.js'
 const SKIP_DIRS = new Set(['node_modules', '.git', 'dist'])
 
 export function discoverSkillFiles(path: string): string[] {
+  if (!existsSync(path)) throw new Error(`${path}: no such file or directory`)
   if (statSync(path).isFile()) return [path]
   const direct = join(path, 'SKILL.md')
   if (existsSync(direct)) return [direct]
