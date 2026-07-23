@@ -1,0 +1,32 @@
+{
+  "name": "skillcheck",
+  "version": "0.1.0",
+  "description": "lint and behavioral tests for agent skills",
+  "license": "MIT",
+  "author": "Yogesh Adhikari",
+  "type": "module",
+  "bin": {
+    "skillcheck": "dist/cli.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "prepublishOnly": "npm run build && npm test"
+  },
+  "dependencies": {
+    "commander": "^15.0.0",
+    "picocolors": "^1.1.1",
+    "yaml": "^2.9.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.1",
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.10"
+  }
+}
