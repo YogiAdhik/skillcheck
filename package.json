@@ -1,5 +1,5 @@
 {
-  "name": "skillcheck",
+  "name": "@yogiadhik/skillcheck",
   "version": "0.1.0",
   "description": "lint and behavioral tests for agent skills",
   "license": "MIT",

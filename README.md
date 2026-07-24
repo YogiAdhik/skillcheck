@@ -8,8 +8,8 @@ you didn't mean. You find out weeks later, in someone else's session.
 
 skillcheck gives skills what code has had for fifty years: a test suite.
 
-    npx skillcheck lint .claude/skills/
-    npx skillcheck run .claude/skills/commit-helper
+    npx @yogiadhik/skillcheck lint .claude/skills/
+    npx @yogiadhik/skillcheck run .claude/skills/commit-helper
 
 `lint` is free and instant: frontmatter problems, weak descriptions
 (the description is the only thing the agent reads when deciding to
@@ -43,7 +43,7 @@ extra; a judge rubric is there for the fuzzy parts.
 skill_invoked. `judge:` sends the transcript and your rubric to a cheap
 model; pass is 7/10 by default (set judge_pass to change it).
 
-Run `npx skillcheck init <skill-dir>` to scaffold a starter file.
+Run `npx @yogiadhik/skillcheck init <skill-dir>` to scaffold a starter file.
 
 ## cost
 
@@ -59,7 +59,7 @@ Lint never spends anything.
         path: .claude/skills
 
 That runs lint with GitHub annotations on every pull request. For
-behavioral runs in CI, call `npx skillcheck run` yourself in a job that
+behavioral runs in CI, call `npx @yogiadhik/skillcheck run` yourself in a job that
 has your agent authenticated; keep a budget flag on it.
 
 ## a note on safety

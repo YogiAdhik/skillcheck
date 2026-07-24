@@ -7,5 +7,5 @@ inputs:
 runs:
   using: composite
   steps:
-    - run: npx --yes skillcheck lint "${{ inputs.path }}" --github
+    - run: npx --yes @yogiadhik/skillcheck lint "${{ inputs.path }}" --github
       shell: bash
