@@ -63,6 +63,8 @@ export const relativeLinks: Rule = (s) => {
   for (const m of proseOnly(s.body).matchAll(/\[[^\]]*\]\(([^)]+)\)/g)) {
     const target = m[1]
     if (/^(https?:|mailto:|#)/.test(target)) continue
+    // templated targets like {baseDir}/x.md resolve at runtime; can't judge them
+    if (target.includes('{')) continue
     if (!existsSync(resolve(s.dir, target.split('#')[0])))
       out.push(finding(s, 'relative-links', 'error', `broken relative link: ${target}`))
   }

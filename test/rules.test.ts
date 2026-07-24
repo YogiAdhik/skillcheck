@@ -33,6 +33,14 @@ describe('lint rules', () => {
     expect(findings.some((f) => f.message.includes('does-not-exist.md'))).toBe(true)
   })
 
+  test('templated links are not judged', () => {
+    const s = fixture('good-skill')
+    const body = '[ref]({baseDir}/references/foo.md) and [broken](really-gone.md)'
+    const findings = relativeLinks({ ...s, body })
+    expect(findings).toHaveLength(1)
+    expect(findings[0].message).toContain('really-gone.md')
+  })
+
   test('links inside code blocks and inline code are ignored', () => {
     const s = fixture('good-skill')
     const body = [
