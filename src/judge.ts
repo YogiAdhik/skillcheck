@@ -17,15 +17,25 @@ export function summarize(t: Transcript): string {
 }
 
 export function parseVerdict(text: string, passScore: number): Verdict {
-  const match = text.match(/\{[\s\S]*\}/)
-  if (!match) throw new Error('judge returned no JSON')
-  const parsed = JSON.parse(match[0])
-  if (typeof parsed.score !== 'number') throw new Error('judge JSON has no numeric score')
-  return {
-    score: parsed.score,
-    pass: parsed.score >= passScore,
-    reasoning: typeof parsed.reasoning === 'string' ? parsed.reasoning : '',
+  const candidates = [...text.matchAll(/\{[\s\S]*?\}/g), ...(text.match(/\{[\s\S]*\}/) ? [[text.match(/\{[\s\S]*\}/)![0]]] : [])]
+  for (const m of candidates) {
+    let parsed: unknown
+    try {
+      parsed = JSON.parse(m[0])
+    } catch {
+      continue
+    }
+    const score = (parsed as { score?: unknown }).score
+    if (typeof score !== 'number' || !Number.isFinite(score)) continue
+    const clamped = Math.min(10, Math.max(0, score))
+    const reasoning = (parsed as { reasoning?: unknown }).reasoning
+    return {
+      score: clamped,
+      pass: clamped >= passScore,
+      reasoning: typeof reasoning === 'string' ? reasoning : '',
+    }
   }
+  throw new Error('judge returned no JSON verdict')
 }
 
 export async function judgeTranscript(opts: {

@@ -19,6 +19,17 @@ describe('judge', () => {
     expect(() => parseVerdict('{"reasoning": "no score"}', 7)).toThrow()
   })
 
+  test('parseVerdict survives braces in surrounding chatter', () => {
+    const v = parseVerdict('the transcript had {cwd: stuff} in it\n{"score": 9, "reasoning": "solid"}\ndone {ok}', 7)
+    expect(v.score).toBe(9)
+    expect(v.pass).toBe(true)
+  })
+
+  test('parseVerdict clamps out-of-range scores', () => {
+    expect(parseVerdict('{"score": 15, "reasoning": "x"}', 7).score).toBe(10)
+    expect(parseVerdict('{"score": -3, "reasoning": "x"}', 7).score).toBe(0)
+  })
+
   test('summarize covers messages, commands, tools', () => {
     const t: Transcript = {
       messages: ['hello'],
