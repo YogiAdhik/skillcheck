@@ -11,7 +11,7 @@ const program = new Command()
 program
   .name('skillcheck')
   .description('lint and behavioral tests for agent skills')
-  .version('0.1.0')
+  .version('0.1.1')
 
 program
   .command('lint')

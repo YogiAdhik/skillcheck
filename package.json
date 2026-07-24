@@ -1,6 +1,6 @@
 {
   "name": "@yogiadhik/skillcheck",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "lint and behavioral tests for agent skills",
   "license": "MIT",
   "author": "Yogesh Adhikari",
