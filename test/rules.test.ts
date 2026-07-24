@@ -33,6 +33,22 @@ describe('lint rules', () => {
     expect(findings.some((f) => f.message.includes('does-not-exist.md'))).toBe(true)
   })
 
+  test('links inside code blocks and inline code are ignored', () => {
+    const s = fixture('good-skill')
+    const body = [
+      'Example usage:',
+      '```',
+      '![chart](data.png){width=full}',
+      '[doc](missing.md)',
+      '```',
+      'And inline: `[ref](also-missing.md)` stays example-only.',
+      '[really broken](truly-absent.md)',
+    ].join('\n')
+    const findings = relativeLinks({ ...s, body })
+    expect(findings).toHaveLength(1)
+    expect(findings[0].message).toContain('truly-absent.md')
+  })
+
   test('dangerous patterns are flagged', () => {
     const messages = dangerousPatterns(fixture('bad-skill')).map((f) => f.message)
     expect(messages.some((m) => m.includes('sudo'))).toBe(true)

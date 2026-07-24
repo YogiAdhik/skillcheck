@@ -44,9 +44,23 @@ export const tokenBudget: Rule = (s) => {
   return []
 }
 
+// links inside fenced blocks or inline code are examples, not references
+function proseOnly(body: string): string {
+  const kept: string[] = []
+  let inFence = false
+  for (const line of body.split('\n')) {
+    if (/^\s*(```|~~~)/.test(line)) {
+      inFence = !inFence
+      continue
+    }
+    if (!inFence) kept.push(line)
+  }
+  return kept.join('\n').replace(/`[^`\n]*`/g, '')
+}
+
 export const relativeLinks: Rule = (s) => {
   const out: Finding[] = []
-  for (const m of s.body.matchAll(/\[[^\]]*\]\(([^)]+)\)/g)) {
+  for (const m of proseOnly(s.body).matchAll(/\[[^\]]*\]\(([^)]+)\)/g)) {
     const target = m[1]
     if (/^(https?:|mailto:|#)/.test(target)) continue
     if (!existsSync(resolve(s.dir, target.split('#')[0])))
