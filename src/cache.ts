@@ -3,18 +3,22 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 
 import { dirname, join } from 'node:path'
 
 export function hashInputs(skillDir: string, caseYaml: string): string {
-  const h = createHash('sha1').update(caseYaml)
-  const walk = (dir: string) => {
+  const h = createHash('sha1').update(caseYaml).update('\0')
+  const walk = (dir: string, prefix: string) => {
     const entries = readdirSync(dir, { withFileTypes: true }).sort((a, b) =>
-      a.name.localeCompare(b.name),
+      a.name < b.name ? -1 : a.name > b.name ? 1 : 0,
     )
     for (const entry of entries) {
-      const p = join(dir, entry.name)
-      if (entry.isDirectory()) walk(p)
-      else h.update(entry.name).update(readFileSync(p))
+      const rel = prefix + entry.name
+      if (entry.isDirectory()) {
+        h.update('d\0' + rel + '\0')
+        walk(join(dir, entry.name), rel + '/')
+      } else {
+        h.update('f\0' + rel + '\0').update(readFileSync(join(dir, entry.name))).update('\0')
+      }
     }
   }
-  walk(skillDir)
+  walk(skillDir, '')
   return h.digest('hex')
 }
 
