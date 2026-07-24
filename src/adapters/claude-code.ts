@@ -21,12 +21,24 @@ export const claudeCode: Adapter = {
   name: 'claude-code',
   run(opts: RunOptions): Promise<Transcript> {
     return new Promise((done, fail) => {
-      const child = spawn('claude', buildArgs(opts), { cwd: opts.cwd, env: process.env })
+      const child = spawn('claude', buildArgs(opts), {
+        cwd: opts.cwd,
+        env: process.env,
+        detached: process.platform !== 'win32',
+      })
       let out = ''
       let err = ''
       const timeoutMs = opts.timeoutMs ?? 300_000
       const timer = setTimeout(() => {
-        child.kill('SIGKILL')
+        if (process.platform === 'win32') {
+          child.kill('SIGKILL')
+        } else {
+          try {
+            process.kill(-child.pid!, 'SIGKILL')
+          } catch {
+            child.kill('SIGKILL')
+          }
+        }
         fail(new Error(`agent run timed out after ${Math.round(timeoutMs / 1000)}s`))
       }, timeoutMs)
       child.stdout.on('data', (d) => (out += d))
