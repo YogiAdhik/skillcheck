@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { Command } from 'commander'
+import { initTestFile } from './init.js'
 import { lintPath } from './lint/lint.js'
 import { printGithubAnnotations } from './reporters/github.js'
 import { printFindings, printReports } from './reporters/terminal.js'
@@ -53,6 +54,18 @@ program
       if (opts.json) console.log(JSON.stringify(reports, null, 2))
       else printReports(reports)
       process.exitCode = reportsPass(reports) ? 0 : 1
+    } catch (e) {
+      console.error((e as Error).message)
+      process.exitCode = 1
+    }
+  })
+
+program
+  .command('init')
+  .argument('<skillDir>', 'skill directory to scaffold tests for')
+  .action((skillDir: string) => {
+    try {
+      console.log(`wrote ${initTestFile(skillDir)}`)
     } catch (e) {
       console.error((e as Error).message)
       process.exitCode = 1
