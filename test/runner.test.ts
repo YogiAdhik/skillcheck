@@ -69,10 +69,14 @@ describe('runner', () => {
 
   test('second run with cache is free', async () => {
     process.chdir(root)
-    const first = await runTests(root, { adapter: fakeAdapter })
-    const second = await runTests(root, { adapter: fakeAdapter })
-    expect(first.every((r) => !r.cached)).toBe(true)
-    expect(second.every((r) => r.cached)).toBe(true)
+    try {
+      const first = await runTests(root, { adapter: fakeAdapter })
+      const second = await runTests(root, { adapter: fakeAdapter })
+      expect(first.every((r) => !r.cached)).toBe(true)
+      expect(second.every((r) => r.cached)).toBe(true)
+    } finally {
+      process.chdir(initialCwd)
+    }
   })
 
   test('cache write failure does not fail the case', async () => {
