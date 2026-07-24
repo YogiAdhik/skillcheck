@@ -1,10 +1,13 @@
+import { tmpdir } from 'node:os'
 import { claudeCode } from './adapters/claude-code.js'
+import type { Adapter } from './adapters/types.js'
 import type { Transcript } from './transcript.js'
 
 export interface Verdict {
   score: number
   pass: boolean
   reasoning: string
+  costUsd?: number
 }
 
 export function summarize(t: Transcript): string {
@@ -43,6 +46,7 @@ export async function judgeTranscript(opts: {
   transcript: Transcript
   model?: string
   passScore?: number
+  adapter?: Adapter
 }): Promise<Verdict> {
   const prompt = [
     'You are grading an AI agent transcript against a rubric.',
@@ -55,19 +59,25 @@ export async function judgeTranscript(opts: {
     'Reply with only a JSON object: {"score": <0-10>, "reasoning": "<one sentence>"}',
   ].join('\n')
   const passScore = opts.passScore ?? 7
+  const adapter = opts.adapter ?? claudeCode
+  let costUsd = 0
   const attempt = async () => {
-    const t = await claudeCode.run({
+    const t = await adapter.run({
       prompt,
-      cwd: process.cwd(),
+      cwd: tmpdir(),
+      bare: true,
       model: opts.model ?? 'haiku',
       maxTurns: 1,
       timeoutMs: 120_000,
     })
+    costUsd += t.result?.costUsd ?? 0
     return parseVerdict(t.messages.join('\n'), passScore)
   }
+  let verdict: Verdict
   try {
-    return await attempt()
+    verdict = await attempt()
   } catch {
-    return await attempt()
+    verdict = await attempt()
   }
+  return { ...verdict, costUsd }
 }

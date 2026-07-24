@@ -21,6 +21,16 @@ describe('claude code adapter', () => {
     expect(args).not.toContain('--model')
   })
 
+  test('bare mode skips the permissions bypass', () => {
+    const args = buildArgs({ prompt: 'x', cwd: '/tmp/x', bare: true })
+    expect(args).not.toContain('--dangerously-skip-permissions')
+  })
+
+  test('permissions bypass is on by default', () => {
+    const args = buildArgs({ prompt: 'x', cwd: '/tmp/x' })
+    expect(args).toContain('--dangerously-skip-permissions')
+  })
+
   test('adapter is named', () => {
     expect(claudeCode.name).toBe('claude-code')
   })

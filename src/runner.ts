@@ -119,8 +119,10 @@ export async function runTests(root: string, opts: RunnerOptions = {}): Promise<
             transcript,
             model: opts.model,
             passScore: c.judge_pass,
+            adapter,
           })
-        const costUsd = transcript.result?.costUsd ?? 0
+        const judgeCost = verdict?.costUsd ?? 0
+        const costUsd = (transcript.result?.costUsd ?? 0) + judgeCost
         spent += costUsd
         const report: CaseReport = { file, case: c.name, checks, verdict, costUsd, cached: false }
         reports.push(report)

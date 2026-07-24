@@ -6,6 +6,8 @@ export interface RunOptions {
   model?: string
   maxTurns?: number
   timeoutMs?: number
+  /** run without the permissions-skip flag */
+  bare?: boolean
 }
 
 export interface Adapter {

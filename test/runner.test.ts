@@ -94,4 +94,45 @@ describe('runner', () => {
   test('discoverTestFiles throws a plain error on a missing path', () => {
     expect(() => discoverTestFiles('no-such-dir-xyz')).toThrow()
   })
+
+  test('judge cost counts toward spend and the report', async () => {
+    const judgeRoot = await mkdtemp(join(tmpdir(), 'skillcheck-judge-'))
+    try {
+      await mkdir(join(judgeRoot, 'my-skill'))
+      await writeFile(
+        join(judgeRoot, 'my-skill', 'SKILL.md'),
+        '---\nname: my-skill\ndescription: Use when testing the runner end to end.\n---\n\nbody\n',
+      )
+      await writeFile(
+        join(judgeRoot, 'my-skill.test.yaml'),
+        [
+          'skill: my-skill',
+          'cases:',
+          '  - name: judged case',
+          '    prompt: "do it"',
+          '    expect:',
+          '      skill_invoked: true',
+          '    judge: "score it"',
+        ].join('\n'),
+      )
+      const judgeAdapter: Adapter = {
+        name: 'fake-judge',
+        async run() {
+          return {
+            messages: ['{"score": 9, "reasoning": "fine"}'],
+            toolCalls: [{ name: 'Skill', input: {} }],
+            commands: [],
+            result: { costUsd: 0.05, numTurns: 1, isError: false },
+          }
+        },
+      }
+      const reports = await runTests(judgeRoot, { adapter: judgeAdapter, cache: false })
+      expect(reports).toHaveLength(1)
+      expect(reports[0].checks.every((c) => c.pass)).toBe(true)
+      expect(reports[0].verdict?.pass).toBe(true)
+      expect(reports[0].costUsd).toBeCloseTo(0.1)
+    } finally {
+      await rm(judgeRoot, { recursive: true, force: true })
+    }
+  })
 })

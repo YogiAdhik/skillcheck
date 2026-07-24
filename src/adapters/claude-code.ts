@@ -9,10 +9,10 @@ export function buildArgs(opts: RunOptions): string[] {
     '--output-format',
     'stream-json',
     '--verbose',
-    '--dangerously-skip-permissions',
     '--max-turns',
     String(opts.maxTurns ?? 30),
   ]
+  if (!opts.bare) args.push('--dangerously-skip-permissions')
   if (opts.model) args.push('--model', opts.model)
   return args
 }

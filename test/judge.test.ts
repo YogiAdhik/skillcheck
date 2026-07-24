@@ -1,5 +1,7 @@
+import { tmpdir } from 'node:os'
 import { describe, expect, test } from 'vitest'
-import { parseVerdict, summarize } from '../src/judge.js'
+import type { Adapter, RunOptions } from '../src/adapters/types.js'
+import { judgeTranscript, parseVerdict, summarize } from '../src/judge.js'
 import type { Transcript } from '../src/transcript.js'
 
 describe('judge', () => {
@@ -28,6 +30,33 @@ describe('judge', () => {
   test('parseVerdict clamps out-of-range scores', () => {
     expect(parseVerdict('{"score": 15, "reasoning": "x"}', 7).score).toBe(10)
     expect(parseVerdict('{"score": -3, "reasoning": "x"}', 7).score).toBe(0)
+  })
+
+  test('judgeTranscript runs bare in a scratch cwd and surfaces cost', async () => {
+    let captured: RunOptions | undefined
+    const fakeAdapter: Adapter = {
+      name: 'fake',
+      async run(opts) {
+        captured = opts
+        return {
+          messages: ['{"score": 9, "reasoning": "ok"}'],
+          toolCalls: [],
+          commands: [],
+          result: { costUsd: 0.02, numTurns: 1, isError: false },
+        }
+      },
+    }
+    const verdict = await judgeTranscript({
+      rubric: 'be helpful',
+      transcript: { messages: [], toolCalls: [], commands: [] },
+      adapter: fakeAdapter,
+    })
+    expect(verdict.pass).toBe(true)
+    expect(verdict.costUsd).toBe(0.02)
+    expect(captured?.bare).toBe(true)
+    expect(captured?.cwd).toBe(tmpdir())
+    expect(captured?.maxTurns).toBe(1)
+    expect(captured?.model).toBe('haiku')
   })
 
   test('summarize covers messages, commands, tools', () => {
