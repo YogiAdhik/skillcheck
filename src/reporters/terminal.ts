@@ -11,7 +11,7 @@ export function printFindings(findings: Finding[]): void {
   console.log(`\n${findings.length} finding(s), ${errors} error(s)`)
 }
 
-export function printReports(reports: CaseReport[]): void {
+export function printReports(reports: CaseReport[], budgetUsd?: number): void {
   let cost = 0
   for (const r of reports) {
     cost += r.costUsd
@@ -26,4 +26,10 @@ export function printReports(reports: CaseReport[]): void {
       console.log(pc.red(`     judge: ${r.verdict.score}/10 — ${r.verdict.reasoning}`))
   }
   console.log(`\n${reports.length} case(s), $${cost.toFixed(4)} spent`)
+  if (budgetUsd !== undefined && cost > budgetUsd)
+    console.log(
+      pc.yellow(
+        `budget of $${budgetUsd} exceeded — the cap is checked between cases, so a single case can overshoot it`,
+      ),
+    )
 }

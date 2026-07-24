@@ -11,7 +11,7 @@ const program = new Command()
 program
   .name('skillcheck')
   .description('lint and behavioral tests for agent skills')
-  .version('0.1.1')
+  .version('0.1.2')
 
 program
   .command('lint')
@@ -43,16 +43,20 @@ program
   .action(async (path: string, opts) => {
     try {
       const files = discoverTestFiles(path)
-      if (!opts.json)
+      if (!opts.json) {
         console.log(`${files.length} test file(s); live agent runs cost money — cap with --budget`)
+        if (!opts.model)
+          console.log('no --model given — using the CLI default model; pass --model haiku for cheap runs')
+      }
+      const budgetUsd = opts.budget ? Number(opts.budget) : undefined
       const reports = await runTests(path, {
         model: opts.model,
-        budgetUsd: opts.budget ? Number(opts.budget) : undefined,
+        budgetUsd,
         timeoutMs: Number(opts.timeout) * 1000,
         cache: opts.cache,
       })
       if (opts.json) console.log(JSON.stringify(reports, null, 2))
-      else printReports(reports)
+      else printReports(reports, budgetUsd)
       process.exitCode = reportsPass(reports) ? 0 : 1
     } catch (e) {
       console.error((e as Error).message)

@@ -49,8 +49,12 @@ Run `npx @yogiadhik/skillcheck init <skill-dir>` to scaffold a starter file.
 
 Behavioral runs call the real agent, and that costs real money.
 skillcheck caches results by content hash — unchanged skill, unchanged
-case, no re-run — and `--budget 2.50` hard-stops a run at the cap.
-Lint never spends anything.
+case, no re-run — and `--budget 2.50` stops the run once the cap is
+crossed. The check happens between cases, so one long case can still
+overshoot on its own: pair a budget with `--model haiku` to keep
+single cases cheap. skillcheck tells you when no model is set, and
+warns at the end if a run blew past its budget. Lint never spends
+anything.
 
 ## CI
 
