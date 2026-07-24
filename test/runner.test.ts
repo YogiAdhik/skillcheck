@@ -95,6 +95,74 @@ describe('runner', () => {
     expect(() => discoverTestFiles('no-such-dir-xyz')).toThrow()
   })
 
+  test('model changes bust the cache', async () => {
+    const modelRoot = await mkdtemp(join(tmpdir(), 'skillcheck-model-cache-'))
+    await mkdir(join(modelRoot, 'my-skill'))
+    await writeFile(
+      join(modelRoot, 'my-skill', 'SKILL.md'),
+      '---\nname: my-skill\ndescription: Use when testing the runner end to end.\n---\n\nbody\n',
+    )
+    await writeFile(
+      join(modelRoot, 'my-skill.test.yaml'),
+      [
+        'skill: my-skill',
+        'cases:',
+        '  - name: invokes and runs git',
+        '    prompt: "do it"',
+        '    expect:',
+        '      skill_invoked: true',
+      ].join('\n'),
+    )
+    process.chdir(modelRoot)
+    try {
+      const first = await runTests(modelRoot, { adapter: fakeAdapter, model: 'haiku' })
+      const second = await runTests(modelRoot, { adapter: fakeAdapter, model: 'haiku' })
+      const third = await runTests(modelRoot, { adapter: fakeAdapter, model: 'other' })
+      expect(first.every((r) => !r.cached)).toBe(true)
+      expect(second.every((r) => r.cached)).toBe(true)
+      expect(third.every((r) => !r.cached)).toBe(true)
+    } finally {
+      process.chdir(initialCwd)
+      await rm(modelRoot, { recursive: true, force: true })
+    }
+  })
+
+  test('fixture edits bust the cache', async () => {
+    const fixRoot = await mkdtemp(join(tmpdir(), 'skillcheck-fixture-cache-'))
+    await mkdir(join(fixRoot, 'my-skill'))
+    await writeFile(
+      join(fixRoot, 'my-skill', 'SKILL.md'),
+      '---\nname: my-skill\ndescription: Use when testing the runner end to end.\n---\n\nbody\n',
+    )
+    await mkdir(join(fixRoot, 'fixture'))
+    await writeFile(join(fixRoot, 'fixture', 'input.txt'), 'v1')
+    await writeFile(
+      join(fixRoot, 'my-skill.test.yaml'),
+      [
+        'skill: my-skill',
+        'cases:',
+        '  - name: invokes and runs git',
+        '    prompt: "do it"',
+        '    setup: fixture',
+        '    expect:',
+        '      skill_invoked: true',
+      ].join('\n'),
+    )
+    process.chdir(fixRoot)
+    try {
+      const first = await runTests(fixRoot, { adapter: fakeAdapter })
+      const second = await runTests(fixRoot, { adapter: fakeAdapter })
+      expect(first.every((r) => !r.cached)).toBe(true)
+      expect(second.every((r) => r.cached)).toBe(true)
+      await writeFile(join(fixRoot, 'fixture', 'input.txt'), 'v2')
+      const third = await runTests(fixRoot, { adapter: fakeAdapter })
+      expect(third.every((r) => !r.cached)).toBe(true)
+    } finally {
+      process.chdir(initialCwd)
+      await rm(fixRoot, { recursive: true, force: true })
+    }
+  })
+
   test('judge cost counts toward spend and the report', async () => {
     const judgeRoot = await mkdtemp(join(tmpdir(), 'skillcheck-judge-'))
     try {

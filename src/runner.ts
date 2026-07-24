@@ -87,7 +87,10 @@ export async function runTests(root: string, opts: RunnerOptions = {}): Promise<
         continue
       }
 
-      const key = hashInputs(skillDir, YAML.stringify(c))
+      const key = hashInputs(
+        c.setup ? [skillDir, resolve(dirname(file), c.setup)] : skillDir,
+        YAML.stringify(c) + '\0' + (opts.model ?? ''),
+      )
       if (opts.cache !== false) {
         const hit = cache.get(key) as CaseReport | undefined
         if (hit) {

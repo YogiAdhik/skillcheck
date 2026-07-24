@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto'
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 
-export function hashInputs(skillDir: string, caseYaml: string): string {
+export function hashInputs(dirs: string | string[], caseYaml: string): string {
   const h = createHash('sha1').update(caseYaml).update('\0')
   const walk = (dir: string, prefix: string) => {
     const entries = readdirSync(dir, { withFileTypes: true }).sort((a, b) =>
@@ -18,7 +18,11 @@ export function hashInputs(skillDir: string, caseYaml: string): string {
       }
     }
   }
-  walk(skillDir, '')
+  const dirList = Array.isArray(dirs) ? dirs : [dirs]
+  dirList.forEach((dir, i) => {
+    h.update(`dir${i}\0`)
+    walk(dir, '')
+  })
   return h.digest('hex')
 }
 

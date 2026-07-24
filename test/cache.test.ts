@@ -61,6 +61,22 @@ describe('cache', () => {
     expect(h1).not.toBe(h2)
   })
 
+  test('array form: same first dir, different second dir yields different hashes', async () => {
+    const { mkdir } = await import('node:fs/promises')
+    const skill = join(dir, 'skill')
+    const fixtureA = join(dir, 'fixtureA')
+    const fixtureB = join(dir, 'fixtureB')
+    await mkdir(skill)
+    await writeFile(join(skill, 'SKILL.md'), 'v1')
+    await mkdir(fixtureA)
+    await writeFile(join(fixtureA, 'f'), 'a')
+    await mkdir(fixtureB)
+    await writeFile(join(fixtureB, 'f'), 'b')
+    const h1 = hashInputs([skill, fixtureA], 'case: x')
+    const h2 = hashInputs([skill, fixtureB], 'case: x')
+    expect(h1).not.toBe(h2)
+  })
+
   test('corrupt cache file loads as empty', () => {
     const path = join(dir, 'cache.json')
     writeFileSync(path, 'not json{')
