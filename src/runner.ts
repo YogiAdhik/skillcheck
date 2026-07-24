@@ -124,7 +124,13 @@ export async function runTests(root: string, opts: RunnerOptions = {}): Promise<
         spent += costUsd
         const report: CaseReport = { file, case: c.name, checks, verdict, costUsd, cached: false }
         reports.push(report)
-        if (opts.cache !== false) cache.set(key, report)
+        if (opts.cache !== false) {
+          try {
+            cache.set(key, report)
+          } catch {
+            // a failed cache write must not fail the case
+          }
+        }
       } catch (e) {
         reports.push({
           file,

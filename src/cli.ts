@@ -40,18 +40,23 @@ program
   .option('--no-cache', 'ignore and do not write cached results')
   .option('--json', 'machine-readable output')
   .action(async (path: string, opts) => {
-    const files = discoverTestFiles(path)
-    if (!opts.json)
-      console.log(`${files.length} test file(s); live agent runs cost money — cap with --budget`)
-    const reports = await runTests(path, {
-      model: opts.model,
-      budgetUsd: opts.budget ? Number(opts.budget) : undefined,
-      timeoutMs: Number(opts.timeout) * 1000,
-      cache: opts.cache,
-    })
-    if (opts.json) console.log(JSON.stringify(reports, null, 2))
-    else printReports(reports)
-    process.exitCode = reportsPass(reports) ? 0 : 1
+    try {
+      const files = discoverTestFiles(path)
+      if (!opts.json)
+        console.log(`${files.length} test file(s); live agent runs cost money — cap with --budget`)
+      const reports = await runTests(path, {
+        model: opts.model,
+        budgetUsd: opts.budget ? Number(opts.budget) : undefined,
+        timeoutMs: Number(opts.timeout) * 1000,
+        cache: opts.cache,
+      })
+      if (opts.json) console.log(JSON.stringify(reports, null, 2))
+      else printReports(reports)
+      process.exitCode = reportsPass(reports) ? 0 : 1
+    } catch (e) {
+      console.error((e as Error).message)
+      process.exitCode = 1
+    }
   })
 
 program.parseAsync()

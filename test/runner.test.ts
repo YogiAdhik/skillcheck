@@ -6,6 +6,7 @@ import type { Adapter } from '../src/adapters/types.js'
 import { discoverTestFiles, reportsPass, runTests } from '../src/runner.js'
 
 let root: string
+const initialCwd = process.cwd()
 
 const fakeAdapter: Adapter = {
   name: 'fake',
@@ -72,5 +73,25 @@ describe('runner', () => {
     const second = await runTests(root, { adapter: fakeAdapter })
     expect(first.every((r) => !r.cached)).toBe(true)
     expect(second.every((r) => r.cached)).toBe(true)
+  })
+
+  test('cache write failure does not fail the case', async () => {
+    const blockRoot = await mkdtemp(join(tmpdir(), 'skillcheck-cacheblock-'))
+    await writeFile(join(blockRoot, '.skillcheck'), '')
+    process.chdir(blockRoot)
+    try {
+      const reports = await runTests(root, { adapter: fakeAdapter })
+      expect(reports).toHaveLength(2)
+      expect(reports.every((r) => !r.cached)).toBe(true)
+      expect(reports[0].checks.every((c) => c.pass)).toBe(true)
+      expect(reports.every((r) => !r.error || r.error.includes('budget'))).toBe(true)
+    } finally {
+      process.chdir(initialCwd)
+      await rm(blockRoot, { recursive: true, force: true })
+    }
+  })
+
+  test('discoverTestFiles throws a plain error on a missing path', () => {
+    expect(() => discoverTestFiles('no-such-dir-xyz')).toThrow()
   })
 })
