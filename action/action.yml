@@ -1,0 +1,11 @@
+name: skillcheck
+description: lint agent skills on pull requests
+inputs:
+  path:
+    description: directory containing skills
+    default: .claude/skills
+runs:
+  using: composite
+  steps:
+    - run: npx --yes skillcheck lint "${{ inputs.path }}" --github
+      shell: bash
