@@ -66,6 +66,42 @@ That runs lint with GitHub annotations on every pull request. For
 behavioral runs in CI, call `npx @yogiadhik/skillcheck run` yourself in a job that
 has your agent authenticated; keep a budget flag on it.
 
+## what it finds in the wild
+
+I periodically run lint across public skill collections — official
+vendor skills, a security firm's suite, several large community
+bundles, close to eight thousand skill files so far. No names,
+because the point is the pattern, and the pattern repeats:
+
+- **Skills that silently don't work.** If a skill's frontmatter isn't
+  valid YAML, the skill never loads — and nothing tells you. The usual
+  cause is an unquoted description containing a colon. Every large
+  bundle I've audited shipped a few of these; anyone installing them
+  gets a skill that simply never fires.
+- **Instructions pointing at files that don't exist.** Skills tell the
+  agent "read references/details.md for the full procedure" and that
+  file was never committed. The agent hits a dead end in the middle of
+  someone's task. This is the most common hard error.
+- **Sheer size.** The most common warning by a wide margin. Skills
+  running twenty to forty thousand tokens re-bill that entire document
+  on every single invocation.
+- **Descriptions without trigger language.** The description is the
+  only thing the model reads when deciding whether to use a skill; a
+  description that doesn't say when to use it is a skill that fires
+  rarely and randomly.
+- **Well-maintained collections come back clean.** Several do,
+  official and community both. Quality is achievable; it's just not
+  the default.
+
+Two honest footnotes. First: twice, the loudest "errors" in an audit
+turned out to be this linter's own false positives — links inside
+example code blocks, and templated {baseDir} targets that resolve at
+runtime. Both fixed (0.1.1, 0.1.3), both caught by checking findings
+against the accused code before believing them. Do the same with
+anything this tool tells you. Second: these audits are how skillcheck
+gets tested — every rule here has drawn blood on real files or been
+fixed for crying wolf.
+
 ## a note on safety
 
 `run` executes the agent with permission prompts disabled, inside a
