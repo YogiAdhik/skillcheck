@@ -8,8 +8,6 @@ const SKIP_DIRS = new Set(['node_modules', '.git', 'dist'])
 export function discoverSkillFiles(path: string): string[] {
   if (!existsSync(path)) throw new Error(`${path}: no such file or directory`)
   if (statSync(path).isFile()) return [path]
-  const direct = join(path, 'SKILL.md')
-  if (existsSync(direct)) return [direct]
   const found: string[] = []
   const walk = (dir: string) => {
     for (const entry of readdirSync(dir, { withFileTypes: true })) {

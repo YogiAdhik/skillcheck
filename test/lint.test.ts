@@ -1,3 +1,6 @@
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { describe, expect, test } from 'vitest'
 import { discoverSkillFiles, lintPath } from '../src/lint/lint.js'
 
@@ -10,6 +13,26 @@ describe('lint', () => {
 
   test('a single skill dir resolves to its SKILL.md', () => {
     expect(discoverSkillFiles('test/fixtures/good-skill')).toHaveLength(1)
+  })
+
+  test('nested skills under a root skill are all found', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'skillcheck-nested-'))
+    try {
+      await writeFile(
+        join(root, 'SKILL.md'),
+        '---\nname: root-skill\ndescription: Root skill with nested subskills.\n---\n\nroot body\n',
+      )
+      await mkdir(join(root, 'sub-skill'))
+      await writeFile(
+        join(root, 'sub-skill', 'SKILL.md'),
+        '---\nname: sub-skill\ndescription: Nested subskill.\n---\n\nsub body\n',
+      )
+      const files = discoverSkillFiles(root)
+      expect(files).toHaveLength(2)
+      expect(files.some((f) => f.endsWith('SKILL.md'))).toBe(true)
+    } finally {
+      await rm(root, { recursive: true, force: true })
+    }
   })
 
   test('lintPath aggregates findings across skills', () => {
