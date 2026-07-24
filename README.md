@@ -54,7 +54,7 @@ Lint never spends anything.
 
 ## CI
 
-    - uses: YogiAdhik/skillcheck/action@main
+    - uses: YogiAdhik/skillcheck/action@v0.1.0
       with:
         path: .claude/skills
 
