@@ -1,4 +1,4 @@
-import { spawn } from 'node:child_process'
+import spawn from 'cross-spawn'
 import { parseStreamJson, type Transcript } from '../transcript.js'
 import type { Adapter, RunOptions } from './types.js'
 
@@ -41,8 +41,8 @@ export const claudeCode: Adapter = {
         }
         fail(new Error(`agent run timed out after ${Math.round(timeoutMs / 1000)}s`))
       }, timeoutMs)
-      child.stdout.on('data', (d) => (out += d))
-      child.stderr.on('data', (d) => (err += d))
+      child.stdout?.on('data', (d) => (out += d))
+      child.stderr?.on('data', (d) => (err += d))
       child.on('error', (e) => {
         clearTimeout(timer)
         fail(e)
