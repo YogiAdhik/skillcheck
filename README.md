@@ -53,8 +53,9 @@ case, no re-run — and `--budget 2.50` stops the run once the cap is
 crossed. The check happens between cases, so one long case can still
 overshoot on its own: pair a budget with `--model haiku` to keep
 single cases cheap. skillcheck tells you when no model is set, and
-warns at the end if a run blew past its budget. Lint never spends
-anything.
+warns at the end if a run blew past its budget. `run --dry-run` shows
+which cases would execute and which would replay from cache before
+anything spends a cent. Lint never spends anything.
 
 ## CI
 

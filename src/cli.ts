@@ -3,15 +3,15 @@ import { Command } from 'commander'
 import { initTestFile } from './init.js'
 import { lintPath } from './lint/lint.js'
 import { printGithubAnnotations } from './reporters/github.js'
-import { printFindings, printReports } from './reporters/terminal.js'
-import { discoverTestFiles, reportsPass, runTests } from './runner.js'
+import { printFindings, printPlan, printReports } from './reporters/terminal.js'
+import { discoverTestFiles, planTests, reportsPass, runTests } from './runner.js'
 
 const program = new Command()
 
 program
   .name('skillcheck')
   .description('lint and behavioral tests for agent skills')
-  .version('0.1.3')
+  .version('0.2.0')
 
 program
   .command('lint')
@@ -39,9 +39,16 @@ program
   .option('--budget <usd>', 'stop once this much has been spent')
   .option('--timeout <seconds>', 'per-case timeout', '300')
   .option('--no-cache', 'ignore and do not write cached results')
+  .option('--dry-run', 'show what would run and what would replay from cache, spending nothing')
   .option('--json', 'machine-readable output')
   .action(async (path: string, opts) => {
     try {
+      if (opts.dryRun) {
+        const plans = planTests(path, { model: opts.model })
+        if (opts.json) console.log(JSON.stringify(plans, null, 2))
+        else printPlan(plans)
+        return
+      }
       const files = discoverTestFiles(path)
       if (!opts.json) {
         console.log(`${files.length} test file(s); live agent runs cost money — cap with --budget`)

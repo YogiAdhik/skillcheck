@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, test } from 'vitest'
 import type { Adapter } from '../src/adapters/types.js'
-import { discoverTestFiles, reportsPass, runTests } from '../src/runner.js'
+import { discoverTestFiles, planTests, reportsPass, runTests } from '../src/runner.js'
 
 let root: string
 const initialCwd = process.cwd()
@@ -52,6 +52,39 @@ afterEach(async () => {
 describe('runner', () => {
   test('discovers test files', () => {
     expect(discoverTestFiles(root)).toHaveLength(1)
+  })
+
+  test('dry run plans without executing and reflects the cache', async () => {
+    const prev = process.cwd()
+    process.chdir(root)
+    try {
+      let spawns = 0
+      const countingAdapter: Adapter = {
+        name: 'counting',
+        async run(opts) {
+          spawns++
+          return fakeAdapter.run(opts)
+        },
+      }
+      const before = planTests(root)
+      expect(before).toHaveLength(2)
+      expect(before.every((p) => !p.cached)).toBe(true)
+      expect(spawns).toBe(0)
+
+      await runTests(root, { adapter: countingAdapter })
+      const ranSpawns = spawns
+
+      const after = planTests(root)
+      expect(after).toHaveLength(2)
+      expect(after.every((p) => p.cached)).toBe(true)
+      expect(after[0].lastCostUsd).toBeCloseTo(0.05)
+      expect(spawns).toBe(ranSpawns)
+
+      const otherModel = planTests(root, { model: 'other' })
+      expect(otherModel.every((p) => !p.cached)).toBe(true)
+    } finally {
+      process.chdir(prev)
+    }
   })
 
   test('runs cases against the adapter and reports per-check results', async () => {

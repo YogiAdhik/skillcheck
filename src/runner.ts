@@ -64,6 +64,36 @@ export function loadTestFile(path: string): TestFile {
   return { path, skill: doc.skill, cases: doc.cases }
 }
 
+function caseKey(skillDir: string, fileDir: string, c: TestCase, model?: string): string {
+  return hashInputs(
+    c.setup ? [skillDir, resolve(fileDir, c.setup)] : skillDir,
+    YAML.stringify(c) + '\0' + (model ?? ''),
+  )
+}
+
+export interface CasePlan {
+  file: string
+  case: string
+  cached: boolean
+  lastCostUsd?: number
+}
+
+export function planTests(root: string, opts: RunnerOptions = {}): CasePlan[] {
+  const cache = new ResultCache(join(process.cwd(), '.skillcheck', 'cache.json'))
+  const plans: CasePlan[] = []
+  for (const file of discoverTestFiles(root)) {
+    const testFile = loadTestFile(file)
+    const skillDir = resolve(dirname(file), testFile.skill)
+    for (const c of testFile.cases) {
+      const hit = cache.get(caseKey(skillDir, dirname(file), c, opts.model)) as
+        | CaseReport
+        | undefined
+      plans.push({ file, case: c.name, cached: !!hit, lastCostUsd: hit?.costUsd })
+    }
+  }
+  return plans
+}
+
 export async function runTests(root: string, opts: RunnerOptions = {}): Promise<CaseReport[]> {
   const adapter = opts.adapter ?? claudeCode
   const cache = new ResultCache(join(process.cwd(), '.skillcheck', 'cache.json'))
@@ -87,10 +117,7 @@ export async function runTests(root: string, opts: RunnerOptions = {}): Promise<
         continue
       }
 
-      const key = hashInputs(
-        c.setup ? [skillDir, resolve(dirname(file), c.setup)] : skillDir,
-        YAML.stringify(c) + '\0' + (opts.model ?? ''),
-      )
+      const key = caseKey(skillDir, dirname(file), c, opts.model)
       if (opts.cache !== false) {
         const hit = cache.get(key) as CaseReport | undefined
         if (hit) {

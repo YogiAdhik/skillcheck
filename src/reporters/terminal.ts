@@ -1,6 +1,6 @@
 import pc from 'picocolors'
 import type { Finding } from '../lint/rules.js'
-import type { CaseReport } from '../runner.js'
+import type { CasePlan, CaseReport } from '../runner.js'
 
 export function printFindings(findings: Finding[]): void {
   for (const f of findings) {
@@ -9,6 +9,29 @@ export function printFindings(findings: Finding[]): void {
   }
   const errors = findings.filter((f) => f.severity === 'error').length
   console.log(`\n${findings.length} finding(s), ${errors} error(s)`)
+}
+
+export function printPlan(plans: CasePlan[]): void {
+  let live = 0
+  let knownCost = 0
+  for (const p of plans) {
+    if (p.cached) {
+      knownCost += p.lastCostUsd ?? 0
+      console.log(`${pc.dim('cached   ')} ${p.case} ($${(p.lastCostUsd ?? 0).toFixed(4)} last time, replays free)`)
+    } else {
+      live++
+      console.log(`${pc.yellow('would run')} ${p.case}`)
+    }
+  }
+  console.log(`\n${plans.length} case(s): ${live} would run live, ${plans.length - live} would replay from cache`)
+  if (live > 0)
+    console.log(
+      pc.yellow(
+        `live cases cost real money and their price is unknown until they run — pair --model haiku with --budget`,
+      ),
+    )
+  else if (plans.length > 0)
+    console.log(pc.dim(`nothing to spend — a real run would replay entirely from cache ($${knownCost.toFixed(4)} when first run)`))
 }
 
 export function printReports(reports: CaseReport[], budgetUsd?: number): void {
