@@ -24,7 +24,10 @@ describe('printReports', () => {
       { file: 'a.test.yaml', case: 'seen case', cached: true, lastCostUsd: 0.07 },
     ]
     printPlan(plans)
-    const out = log.mock.calls.flat().join('\n')
+    const out = log.mock.calls
+      .flat()
+      .join('\n')
+      .replace(/\[[0-9;]*m/g, '')
     expect(out).toContain('would run fresh case')
     expect(out).toContain('seen case')
     expect(out).toContain('1 would run live, 1 would replay from cache')
