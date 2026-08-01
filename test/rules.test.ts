@@ -79,11 +79,11 @@ describe('lint rules', () => {
     expect(shortFindings).toHaveLength(1)
     expect(shortFindings[0].message).toContain('20 chars')
 
-    // Branch 2: description over 1000 chars (with trigger language to avoid other warnings)
-    const longDesc = { ...s, description: 'Use when testing. ' + 'x'.repeat(1200) }
+    // Branch 2: description over 1536 chars (with trigger language to avoid other warnings)
+    const longDesc = { ...s, description: 'Use when testing. ' + 'x'.repeat(1600) }
     const longFindings = descriptionQuality(longDesc)
     expect(longFindings).toHaveLength(1)
-    expect(longFindings[0].message).toContain('1000 chars')
+    expect(longFindings[0].message).toContain('1536 chars')
 
     // Branch 3: description lacking trigger language (sufficient length to avoid other warnings)
     const noTriggerDesc = { ...s, description: 'A simple description without special words that is long enough.' }

@@ -30,8 +30,8 @@ export const descriptionQuality: Rule = (s) => {
   const out: Finding[] = []
   if (d.length < 20)
     out.push(finding(s, 'description-quality', 'warning', 'description under 20 chars; unlikely to trigger reliably'))
-  if (d.length > 1000)
-    out.push(finding(s, 'description-quality', 'warning', 'description over 1000 chars; gets truncated in listings'))
+  if (d.length > 1536)
+    out.push(finding(s, 'description-quality', 'warning', 'description over 1536 chars; gets truncated in listings'))
   if (!/\b(use|when|for|trigger)\b/i.test(d))
     out.push(finding(s, 'description-quality', 'warning', 'description has no trigger language ("use when ...") — the agent decides from this text alone'))
   return out
