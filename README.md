@@ -94,11 +94,12 @@ because the point is the pattern, and the pattern repeats:
   official and community both. Quality is achievable; it's just not
   the default.
 
-Two honest footnotes. First: twice, the loudest "errors" in an audit
-turned out to be this linter's own false positives — links inside
-example code blocks, and templated {baseDir} targets that resolve at
-runtime. Both fixed (0.1.1, 0.1.3), both caught by checking findings
-against the accused code before believing them. Do the same with
+Two honest footnotes. First: three times now, the loudest "errors" in
+an audit turned out to be this linter's own false positives — links
+inside example code blocks, templated {baseDir} targets that resolve
+at runtime, and placeholder links in quoted prose like
+"[Team roster](its link)". All fixed (0.1.1, 0.1.3, 0.2.1), all caught
+by checking findings against the accused code before believing them. Do the same with
 anything this tool tells you. Second: these audits are how skillcheck
 gets tested — every rule here has drawn blood on real files or been
 fixed for crying wolf.
