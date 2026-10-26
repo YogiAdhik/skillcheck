@@ -30,8 +30,10 @@ export const descriptionQuality: Rule = (s) => {
   const out: Finding[] = []
   if (d.length < 20)
     out.push(finding(s, 'description-quality', 'warning', 'description under 20 chars; unlikely to trigger reliably'))
-  if (d.length > 1000)
-    out.push(finding(s, 'description-quality', 'warning', 'description over 1000 chars; gets truncated in listings'))
+  // claude code truncates description + when_to_use at 1536 chars combined
+  const whenToUse = typeof s.frontmatter.when_to_use === 'string' ? s.frontmatter.when_to_use : ''
+  if (d.length + whenToUse.length > 1536)
+    out.push(finding(s, 'description-quality', 'warning', 'description over 1536 chars (counting when_to_use); gets truncated in listings'))
   if (!/\b(use|when|for|trigger)\b/i.test(d))
     out.push(finding(s, 'description-quality', 'warning', 'description has no trigger language ("use when ...") — the agent decides from this text alone'))
   return out
@@ -65,6 +67,8 @@ export const relativeLinks: Rule = (s) => {
     if (/^(https?:|mailto:|#)/.test(target)) continue
     // templated targets like {baseDir}/x.md resolve at runtime; can't judge them
     if (target.includes('{')) continue
+    // a destination with a raw space never parses as a markdown link; it's placeholder prose
+    if (/\s/.test(target)) continue
     if (!existsSync(resolve(s.dir, target.split('#')[0])))
       out.push(finding(s, 'relative-links', 'error', `broken relative link: ${target}`))
   }

@@ -33,6 +33,14 @@ describe('lint rules', () => {
     expect(findings.some((f) => f.message.includes('does-not-exist.md'))).toBe(true)
   })
 
+  test('placeholder targets with spaces are not judged', () => {
+    const s = fixture('good-skill')
+    const body = 'make its title a link: "[Team roster](its link)" and [broken](really-gone.md)'
+    const findings = relativeLinks({ ...s, body })
+    expect(findings).toHaveLength(1)
+    expect(findings[0].message).toContain('really-gone.md')
+  })
+
   test('templated links are not judged', () => {
     const s = fixture('good-skill')
     const body = '[ref]({baseDir}/references/foo.md) and [broken](really-gone.md)'
@@ -79,16 +87,30 @@ describe('lint rules', () => {
     expect(shortFindings).toHaveLength(1)
     expect(shortFindings[0].message).toContain('20 chars')
 
-    // Branch 2: description over 1000 chars (with trigger language to avoid other warnings)
-    const longDesc = { ...s, description: 'Use when testing. ' + 'x'.repeat(1200) }
+    // Branch 2: description over 1536 chars (with trigger language to avoid other warnings)
+    const longDesc = { ...s, description: 'Use when testing. ' + 'x'.repeat(1600) }
     const longFindings = descriptionQuality(longDesc)
     expect(longFindings).toHaveLength(1)
-    expect(longFindings[0].message).toContain('1000 chars')
+    expect(longFindings[0].message).toContain('1536 chars')
 
     // Branch 3: description lacking trigger language (sufficient length to avoid other warnings)
     const noTriggerDesc = { ...s, description: 'A simple description without special words that is long enough.' }
     const noTriggerFindings = descriptionQuality(noTriggerDesc)
     expect(noTriggerFindings).toHaveLength(1)
     expect(noTriggerFindings[0].message).toContain('trigger language')
+  })
+
+  test('when_to_use counts toward the 1536-char cap', () => {
+    const s = fixture('good-skill')
+    const d = 'Use when testing. ' + 'x'.repeat(900)
+    expect(descriptionQuality({ ...s, description: d })).toHaveLength(0)
+    const over = {
+      ...s,
+      description: d,
+      frontmatter: { ...s.frontmatter, when_to_use: 'y'.repeat(900) },
+    }
+    const findings = descriptionQuality(over)
+    expect(findings).toHaveLength(1)
+    expect(findings[0].message).toContain('1536 chars')
   })
 })
