@@ -19,6 +19,10 @@ workspace, mounts your skill, runs the agent headless, and tells you
 what actually happened — which files changed, which commands ran,
 whether the skill fired at all.
 
+When scanning a directory, lint skips skills under test/, tests/ and
+fixtures/ trees — those are examples, not shipped skills. Point at one
+directly if you mean it.
+
 ## writing a test
 
 One YAML file next to your skill. Deterministic checks cost nothing

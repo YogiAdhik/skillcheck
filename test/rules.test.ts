@@ -65,6 +65,20 @@ describe('lint rules', () => {
     expect(findings[0].message).toContain('truly-absent.md')
   })
 
+  test('dangerous patterns in markdown tables are not flagged', () => {
+    const s = fixture('good-skill')
+    const body = [
+      '| pattern | why |',
+      '|---------|-----|',
+      '| `rm -rf /var/data` | recursive delete |',
+      '',
+      'then run: sudo make install',
+    ].join('\n')
+    const findings = dangerousPatterns({ ...s, body })
+    expect(findings).toHaveLength(1)
+    expect(findings[0].message).toContain('sudo')
+  })
+
   test('dangerous patterns are flagged', () => {
     const messages = dangerousPatterns(fixture('bad-skill')).map((f) => f.message)
     expect(messages.some((m) => m.includes('sudo'))).toBe(true)

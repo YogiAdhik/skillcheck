@@ -3,7 +3,8 @@ import { join } from 'node:path'
 import { isParseError, loadSkill } from '../skill.js'
 import { allRules, type Finding } from './rules.js'
 
-const SKIP_DIRS = new Set(['node_modules', '.git', 'dist'])
+// test trees hold fixture skills, not shipped ones; an explicit path still lints
+const SKIP_DIRS = new Set(['node_modules', '.git', 'dist', 'test', 'tests', 'fixtures'])
 
 export function discoverSkillFiles(path: string): string[] {
   if (!existsSync(path)) throw new Error(`${path}: no such file or directory`)

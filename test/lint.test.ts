@@ -35,6 +35,24 @@ describe('lint', () => {
     }
   })
 
+  test('skills under test, tests and fixtures dirs are skipped', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'skillcheck-fixture-skip-'))
+    try {
+      const skill = '---\nname: x\ndescription: Use when testing discovery of skills.\n---\n\nbody\n'
+      await mkdir(join(root, 'real-skill'))
+      await writeFile(join(root, 'real-skill', 'SKILL.md'), skill)
+      for (const dir of ['test', 'tests', 'fixtures']) {
+        await mkdir(join(root, dir, 'fake-skill'), { recursive: true })
+        await writeFile(join(root, dir, 'fake-skill', 'SKILL.md'), skill)
+      }
+      const files = discoverSkillFiles(root)
+      expect(files).toHaveLength(1)
+      expect(files[0]).toContain('real-skill')
+    } finally {
+      await rm(root, { recursive: true, force: true })
+    }
+  })
+
   test('lintPath aggregates findings across skills', () => {
     const findings = lintPath('test/fixtures')
     expect(findings.some((f) => f.file.includes('bad-skill'))).toBe(true)

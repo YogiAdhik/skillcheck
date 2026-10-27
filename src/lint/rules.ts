@@ -83,9 +83,14 @@ const DANGEROUS = [
 ]
 
 export const dangerousPatterns: Rule = (s) => {
+  // table rows document patterns (guard lists, allowlists); they aren't instructions to run
+  const prose = s.body
+    .split('\n')
+    .filter((l) => !l.trimStart().startsWith('|'))
+    .join('\n')
   const out: Finding[] = []
   for (const { re, why } of DANGEROUS)
-    if (re.test(s.body)) out.push(finding(s, 'dangerous-patterns', 'warning', why))
+    if (re.test(prose)) out.push(finding(s, 'dangerous-patterns', 'warning', why))
   return out
 }
 
